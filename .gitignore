@@ -1,0 +1,7 @@
+service-account-key.json
+.env
+node_modules/
+dist/
+google-cloud-sdk/
+project_venv/
+.DS_Store

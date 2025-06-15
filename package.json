@@ -1,0 +1,25 @@
+{
+  "name": "google-noculars",
+  "version": "1.0.0",
+  "description": "Project repository for the ADK Hackathon with Google Cloud",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google-cloud/aiplatform": "^4.2.0",
+    "@google-cloud/bigquery": "^8.1.0",
+    "@google-cloud/run": "^2.1.0",
+    "@google-cloud/vision": "^5.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}
