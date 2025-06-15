@@ -5,3 +5,5 @@ dist/
 google-cloud-sdk/
 project_venv/
 .DS_Store
+CLAUDE.md
+project_brief.md
