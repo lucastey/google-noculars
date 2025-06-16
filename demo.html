@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Noculars - UX Tracking Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .interactive-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .card p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            z-index: 1000;
+        }
+
+        .scrollable-content {
+            height: 300px;
+            overflow-y: scroll;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .long-content {
+            line-height: 1.8;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Tracking Status -->
+    <div class="status" id="trackingStatus">
+        🎯 Tracking: Initializing...
+    </div>
+
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1>🔍 Google Noculars</h1>
+            <p>UX Tracking Demo - Move your mouse, click, and scroll to test the tracking system</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="content">
+            <h2>Interactive Elements Testing</h2>
+            <p>This demo page helps test our mouse tracking system. Every interaction is being captured and sent to BigQuery for analysis.</p>
+
+            <!-- Interactive Cards -->
+            <div class="interactive-section">
+                <div class="card" id="card1">
+                    <h3>🎨 Design Analytics</h3>
+                    <p>Track how users interact with your design elements. Hover over this card to see it animate!</p>
+                    <button class="btn" onclick="trackCustomEvent('design_click')">Track Custom Event</button>
+                </div>
+
+                <div class="card" id="card2">
+                    <h3>📊 User Behavior</h3>
+                    <p>Understand mouse movement patterns, click distributions, and scroll behaviors.</p>
+                    <button class="btn" onclick="showAlert('Behavior Analytics')">Show Alert</button>
+                </div>
+
+                <div class="card" id="card3">
+                    <h3>🚀 Performance Insights</h3>
+                    <p>Get actionable insights about your website's user experience performance.</p>
+                    <a href="#form" class="btn">Scroll to Form</a>
+                </div>
+            </div>
+
+            <!-- Form Section -->
+            <section class="form-section" id="form">
+                <h2>Test Form Interactions</h2>
+                <p>Fill out this form to test input tracking:</p>
+
+                <form id="testForm">
+                    <div class="form-group">
+                        <label for="name">Full Name:</label>
+                        <input type="text" id="name" name="name" placeholder="Enter your name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" placeholder="Enter your email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category:</label>
+                        <select id="category" name="category">
+                            <option value="">Select a category</option>
+                            <option value="business">Business</option>
+                            <option value="personal">Personal</option>
+                            <option value="research">Research</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="message">Message:</label>
+                        <textarea id="message" name="message" rows="4" placeholder="Enter your message"></textarea>
+                    </div>
+
+                    <button type="submit" class="btn">Submit Form</button>
+                </form>
+            </section>
+
+            <!-- Scrollable Content -->
+            <section class="scrollable-content">
+                <h3>Scrollable Content Area</h3>
+                <div class="long-content">
+                    <p>This is a scrollable area to test scroll tracking. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                    
+                    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    
+                    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+                    
+                    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+                    
+                    <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Include the tracking SDK -->
+    <script src="/client-sdk/tracker.js"></script>
+
+    <!-- Demo page JavaScript -->
+    <script>
+        // Update tracking status
+        function updateTrackingStatus() {
+            const statusEl = document.getElementById('trackingStatus');
+            if (window.uxTracker && window.uxTracker.isInitialized) {
+                statusEl.innerHTML = `🟢 Tracking: Active<br>Session: ${window.uxTracker.sessionId}`;
+            } else {
+                statusEl.innerHTML = '🔄 Tracking: Initializing...';
+            }
+        }
+
+        // Custom event tracking
+        function trackCustomEvent(eventName) {
+            if (window.uxTracker) {
+                window.uxTracker.trackCustomEvent(eventName, {
+                    page: 'demo',
+                    timestamp: new Date().toISOString()
+                });
+                console.log('Custom event tracked:', eventName);
+            }
+        }
+
+        // Show alert function
+        function showAlert(message) {
+            alert(message);
+            trackCustomEvent('alert_shown');
+        }
+
+        // Form submission handler
+        document.getElementById('testForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            trackCustomEvent('form_submit');
+            alert('Form submitted! (This is just a demo)');
+        });
+
+        // Update status every second
+        setInterval(updateTrackingStatus, 1000);
+
+        // Initial status update
+        setTimeout(updateTrackingStatus, 500);
+
+        // Add some visual feedback for interactions
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.background = '#e3f2fd';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.background = '#f8f9fa';
+            });
+        });
+
+        console.log('🎯 Demo page loaded. UX Tracker should be initializing...');
+    </script>
+</body>
+</html>
