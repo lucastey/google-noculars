@@ -1,0 +1,106 @@
+{
+  "ab_test_config": {
+    "statistical_settings": {
+      "confidence_level": 0.95,
+      "minimum_sample_size": 100,
+      "minimum_detectable_effect": 0.05,
+      "power": 0.80,
+      "alpha": 0.05
+    },
+    "test_duration": {
+      "minimum_days": 7,
+      "maximum_days": 30,
+      "recommended_days": 14
+    },
+    "traffic_allocation": {
+      "control_percentage": 50,
+      "variant_percentage": 50,
+      "holdout_percentage": 0
+    },
+    "conversion_goals": {
+      "primary_metrics": [
+        "conversion_rate",
+        "revenue_per_user",
+        "engagement_score"
+      ],
+      "secondary_metrics": [
+        "bounce_rate",
+        "session_duration",
+        "click_through_rate",
+        "scroll_depth"
+      ]
+    },
+    "significance_thresholds": {
+      "statistical_significance": 0.95,
+      "business_significance": {
+        "high": 0.10,
+        "medium": 0.05,
+        "low": 0.02
+      },
+      "winner_probability": 0.90
+    },
+    "data_quality": {
+      "minimum_data_quality_score": 0.80,
+      "sample_ratio_mismatch_threshold": 0.05,
+      "external_validity_threshold": 0.70
+    }
+  },
+  "test_templates": {
+    "homepage_cta": {
+      "test_name": "Homepage CTA Button Optimization",
+      "primary_metric": "conversion_rate",
+      "traffic_allocation": 50,
+      "minimum_sample_size": 500,
+      "expected_effect_size": 0.08
+    },
+    "checkout_flow": {
+      "test_name": "Checkout Flow Simplification",
+      "primary_metric": "revenue_per_user",
+      "traffic_allocation": 30,
+      "minimum_sample_size": 1000,
+      "expected_effect_size": 0.15
+    },
+    "navigation_menu": {
+      "test_name": "Navigation Menu Layout",
+      "primary_metric": "engagement_score",
+      "traffic_allocation": 50,
+      "minimum_sample_size": 300,
+      "expected_effect_size": 0.10
+    }
+  },
+  "business_rules": {
+    "auto_stop_conditions": {
+      "probability_to_beat_control": 0.95,
+      "minimum_runtime_days": 7,
+      "maximum_runtime_days": 30,
+      "statistical_significance_required": true
+    },
+    "winner_selection": {
+      "require_statistical_significance": true,
+      "require_business_significance": true,
+      "minimum_lift_percentage": 2.0,
+      "confidence_threshold": 0.90
+    },
+    "risk_management": {
+      "maximum_negative_impact": -0.10,
+      "alert_threshold_p_value": 0.05,
+      "data_quality_minimum": 0.75
+    }
+  },
+  "reporting_config": {
+    "update_frequency_hours": 24,
+    "dashboard_metrics": [
+      "conversion_rate",
+      "statistical_significance",
+      "lift_percent",
+      "winner_probability",
+      "sample_size"
+    ],
+    "alert_conditions": [
+      "statistical_significance_achieved",
+      "business_significance_achieved",
+      "data_quality_issues",
+      "sample_ratio_mismatch"
+    ]
+  }
+}
