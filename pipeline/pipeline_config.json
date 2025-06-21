@@ -1,0 +1,34 @@
+{
+  "python_executable": "project_venv/bin/python",
+  "max_concurrent_agents": 2,
+  "data_retention_days": 30,
+  "notification_webhooks": [],
+  "enable_monitoring": true,
+  "schedules": {
+    "every_15_minutes": 900,
+    "hourly": 3600,
+    "daily": 86400
+  },
+  "agent_timeouts": {
+    "pattern_recognition": 300,
+    "business_intelligence": 600,
+    "ab_testing": 900,
+    "insights_engine": 600
+  },
+  "retry_policies": {
+    "default_retry_count": 3,
+    "backoff_multiplier": 2,
+    "max_retry_delay": 60
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "pipeline.log",
+    "max_file_size": "10MB",
+    "backup_count": 5
+  },
+  "bigquery": {
+    "project_id": "ux-insights-project",
+    "dataset": "ux_insights",
+    "location": "US"
+  }
+}

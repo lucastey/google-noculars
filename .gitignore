@@ -51,3 +51,7 @@ Thumbs.db
 CLAUDE.md
 project_brief.md
 IMPLEMENTATION_PLAN.md
+
+# Pipeline
+pipeline_state.json
+pipeline.log

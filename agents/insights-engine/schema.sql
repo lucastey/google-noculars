@@ -46,7 +46,6 @@ CREATE TABLE IF NOT EXISTS `ux_insights.final_recommendations` (
   -- Recommendation details
   recommendation_title STRING, -- Clear, actionable title
   recommendation_description STRING, -- Detailed description of what to do
-  recommendation_category STRING, -- 'ui_design', 'content', 'functionality', 'performance', 'analytics'
   implementation_complexity STRING, -- 'simple', 'moderate', 'complex', 'major'
   estimated_implementation_hours FLOAT64,
   required_resources STRING, -- JSON array of resources needed
@@ -94,7 +93,6 @@ CREATE TABLE IF NOT EXISTS `ux_insights.final_recommendations` (
   -- Aggregated source agent summaries (across all sessions for this page)
   average_engagement_score FLOAT64, -- Average engagement score from pattern recognition
   average_frustration_level FLOAT64, -- Average frustration level from pattern recognition
-  average_conversion_probability FLOAT64, -- Average conversion probability from business intelligence
   dominant_funnel_stage STRING, -- Most common funnel stage from business intelligence
   funnel_stage_distribution STRING, -- JSON object with funnel stage breakdown
   source_ab_test_winner STRING, -- From A/B testing (if applicable)
