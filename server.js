@@ -27,6 +27,24 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.static('.')); // Serve static files from root directory
 app.use('/client-sdk', express.static('client-sdk')); // Also serve client-sdk specifically
 
+// Demo API Key to Tenant ID mapping (for hackathon)
+const API_KEY_TO_TENANT = {
+    'demo-123': 'tenant_demo_company',
+    'test-456': 'tenant_test_startup', 
+    'hackathon-789': 'tenant_hackathon_example',
+    'demo-default': 'tenant_default'
+};
+
+// Helper function to extract tenant ID from API key
+function getTenantIdFromApiKey(apiKey) {
+    const tenantId = API_KEY_TO_TENANT[apiKey];
+    if (!tenantId) {
+        console.warn(`Unknown API key: ${apiKey}, using default tenant`);
+        return 'tenant_default';
+    }
+    return tenantId;
+}
+
 // Logging middleware
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -45,7 +63,7 @@ app.get('/health', (req, res) => {
 // Main tracking endpoint
 app.post('/api/track', async (req, res) => {
     try {
-        const { events, batchTimestamp, sessionId } = req.body;
+        const { events, batchTimestamp, sessionId, apiKey } = req.body;
 
         if (!events || !Array.isArray(events) || events.length === 0) {
             return res.status(400).json({ 
@@ -53,9 +71,12 @@ app.post('/api/track', async (req, res) => {
             });
         }
 
-        console.log(`Received batch of ${events.length} events for session ${sessionId}`);
+        // Extract tenant ID from API key
+        const tenantId = getTenantIdFromApiKey(apiKey);
 
-        // Transform events to match BigQuery schema
+        console.log(`Received batch of ${events.length} events for session ${sessionId} (tenant: ${tenantId})`);
+
+        // Transform events to match BigQuery schema with tenant isolation
         const transformedEvents = events.map(event => ({
             session_id: event.sessionId || sessionId,
             page_url: event.pageUrl,
@@ -74,6 +95,7 @@ app.post('/api/track', async (req, res) => {
             element_text: event.elementText,
             page_title: event.pageTitle,
             referrer: event.referrer,
+            tenant_id: tenantId,  // Add tenant isolation
             created_at: new Date().toISOString()
         }));
 

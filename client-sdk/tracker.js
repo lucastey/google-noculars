@@ -8,8 +8,12 @@
 
     class UXTracker {
         constructor(config = {}) {
+            // Extract API key from script src parameter
+            const apiKey = this.extractApiKeyFromScript();
+            
             this.config = {
                 apiEndpoint: config.apiEndpoint || '/api/track',
+                apiKey: config.apiKey || apiKey,
                 batchSize: config.batchSize || 50,
                 batchInterval: config.batchInterval || 10000, // 10 seconds
                 mouseThrottleMs: config.mouseThrottleMs || 100, // 10 events/second max
@@ -53,6 +57,34 @@
         generateSessionId() {
             // Simple UUID-like session ID generation
             return 'ux_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        extractApiKeyFromScript() {
+            // Find the current script tag and extract API key from src parameter
+            const scripts = document.getElementsByTagName('script');
+            for (let script of scripts) {
+                if (script.src && script.src.includes('tracker.js')) {
+                    const url = new URL(script.src);
+                    const apiKey = url.searchParams.get('key');
+                    if (apiKey) {
+                        console.log('[UX Tracker] API key extracted from script:', apiKey);
+                        return apiKey;
+                    }
+                }
+            }
+            
+            // Fallback: check if currentScript is available
+            if (document.currentScript && document.currentScript.src) {
+                const url = new URL(document.currentScript.src);
+                const apiKey = url.searchParams.get('key');
+                if (apiKey) {
+                    console.log('[UX Tracker] API key extracted from currentScript:', apiKey);
+                    return apiKey;
+                }
+            }
+            
+            console.log('[UX Tracker] Warning: No API key found in script src. Using default.');
+            return 'demo-default';
         }
 
         attachEventListeners() {
@@ -217,7 +249,8 @@
             const payload = {
                 events: events,
                 batchTimestamp: new Date().toISOString(),
-                sessionId: this.sessionId
+                sessionId: this.sessionId,
+                apiKey: this.config.apiKey
             };
 
             const options = {
