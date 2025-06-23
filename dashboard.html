@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Noculars - Analytics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .tenant-selector, .refresh-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, button {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        select:focus, button:hover {
+            border-color: #667eea;
+            outline: none;
+        }
+
+        button {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            font-weight: 600;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #27ae60;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .chart-container {
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #ddd;
+            margin-top: 15px;
+        }
+
+        .heatmap-container {
+            height: 400px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .heatmap-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="heat"><stop offset="0%" stop-color="red" stop-opacity="0.8"/><stop offset="50%" stop-color="yellow" stop-opacity="0.4"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs><circle cx="30" cy="40" r="15" fill="url(%23heat)"/><circle cx="70" cy="60" r="10" fill="url(%23heat)"/><circle cx="50" cy="30" r="8" fill="url(%23heat)"/></svg>');
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        .insights-list {
+            list-style: none;
+        }
+
+        .insights-list li {
+            padding: 12px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .insight-priority {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c62828;
+            margin: 10px 0;
+        }
+
+        .wide-card {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .status-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔍 Google Noculars Analytics</h1>
+            <p>Real-time UX insights and behavioral analytics platform</p>
+            
+            <div class="header-controls">
+                <div class="tenant-selector">
+                    <label for="tenantSelect">Tenant:</label>
+                    <select id="tenantSelect">
+                        <option value="tenant_demo_company">Demo Company (demo-123)</option>
+                        <option value="tenant_test_startup">Test Startup (test-456)</option>
+                        <option value="tenant_hackathon_example">Hackathon Example (hackathon-789)</option>
+                        <option value="tenant_default">Default (demo-default)</option>
+                    </select>
+                </div>
+                
+                <div class="refresh-controls">
+                    <button onclick="refreshDashboard()">🔄 Refresh Data</button>
+                    <button onclick="toggleAutoRefresh()" id="autoRefreshBtn">▶️ Auto Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>System Status: <strong id="systemStatus">Monitoring...</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Last Updated: <strong id="lastUpdated">Loading...</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Active Sessions: <strong id="activeSessions">-</strong></span>
+            </div>
+            <div class="status-item">
+                <span>Data Points: <strong id="totalDataPoints">-</strong></span>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <!-- Real-time Metrics -->
+            <div class="card">
+                <h3>📊 Live Metrics</h3>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <span class="metric-value" id="activeUsers">-</span>
+                        <div class="metric-label">Active Users</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="pageViews">-</span>
+                        <div class="metric-label">Page Views</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="avgSessionTime">-</span>
+                        <div class="metric-label">Avg Session (min)</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="clickRate">-</span>
+                        <div class="metric-label">Click Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mouse Tracking Visualization -->
+            <div class="card">
+                <h3>🖱️ Mouse Activity Heatmap</h3>
+                <div class="heatmap-container">
+                    <div class="heatmap-overlay"></div>
+                    <div style="position: absolute; bottom: 10px; left: 10px; font-size: 12px; color: #666;">
+                        Live mouse tracking visualization
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Behavior Patterns -->
+            <div class="card">
+                <h3>👤 Behavioral Insights</h3>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <span class="metric-value" id="engagementScore">-</span>
+                        <div class="metric-label">Engagement Score</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="frustrationLevel">-</span>
+                        <div class="metric-label">Frustration Level</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="scrollDepth">-</span>
+                        <div class="metric-label">Avg Scroll Depth</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="taskCompletion">-</span>
+                        <div class="metric-label">Task Completion</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Intelligence -->
+            <div class="card">
+                <h3>💼 Business Intelligence</h3>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <span class="metric-value" id="conversionRate">-</span>
+                        <div class="metric-label">Conversion Rate</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="revenueImpact">-</span>
+                        <div class="metric-label">Revenue Impact</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="userSegment">-</span>
+                        <div class="metric-label">Primary Segment</div>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-value" id="journeyEfficiency">-</span>
+                        <div class="metric-label">Journey Efficiency</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activity Timeline -->
+            <div class="card wide-card">
+                <h3>📈 Activity Timeline</h3>
+                <div class="chart-container">
+                    <div style="text-align: center; color: #666;">
+                        <div class="loading"></div>
+                        <p style="margin-top: 10px;">Loading real-time activity data...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI-Powered Recommendations -->
+            <div class="card wide-card">
+                <h3>🤖 AI-Powered Recommendations</h3>
+                <ul class="insights-list" id="recommendationsList">
+                    <li><span class="insight-priority">HIGH:</span> Loading AI-powered insights...</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let autoRefreshInterval = null;
+        let isAutoRefreshEnabled = false;
+
+        // Dashboard initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            refreshDashboard();
+        });
+
+        function initializeDashboard() {
+            // Set up tenant selector change handler
+            document.getElementById('tenantSelect').addEventListener('change', function() {
+                refreshDashboard();
+            });
+
+            // Update system status
+            updateSystemStatus();
+        }
+
+        function updateSystemStatus() {
+            document.getElementById('systemStatus').textContent = 'Active';
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+        }
+
+        async function refreshDashboard() {
+            const tenantId = document.getElementById('tenantSelect').value;
+            updateSystemStatus();
+
+            try {
+                // Fetch dashboard data
+                await Promise.all([
+                    fetchLiveMetrics(tenantId),
+                    fetchBehavioralInsights(tenantId),
+                    fetchBusinessIntelligence(tenantId),
+                    fetchRecommendations(tenantId),
+                    fetchActivityTimeline(tenantId)
+                ]);
+            } catch (error) {
+                console.error('Dashboard refresh error:', error);
+                showError('Failed to refresh dashboard data. Please check your connection.');
+            }
+        }
+
+        async function fetchLiveMetrics(tenantId) {
+            try {
+                const response = await fetch(`/api/dashboard/metrics?tenant=${tenantId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                updateLiveMetrics(data);
+            } catch (error) {
+                console.error('Error fetching live metrics:', error);
+                // Show demo data for hackathon
+                updateLiveMetrics({
+                    activeUsers: Math.floor(Math.random() * 50) + 10,
+                    pageViews: Math.floor(Math.random() * 500) + 100,
+                    avgSessionTime: (Math.random() * 10 + 2).toFixed(1),
+                    clickRate: (Math.random() * 20 + 10).toFixed(1) + '%',
+                    activeSessions: Math.floor(Math.random() * 20) + 5,
+                    totalDataPoints: Math.floor(Math.random() * 10000) + 1000
+                });
+            }
+        }
+
+        async function fetchBehavioralInsights(tenantId) {
+            try {
+                const response = await fetch(`/api/dashboard/behavioral?tenant=${tenantId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                updateBehavioralInsights(data);
+            } catch (error) {
+                console.error('Error fetching behavioral insights:', error);
+                // Show demo data for hackathon
+                updateBehavioralInsights({
+                    engagementScore: (Math.random() * 40 + 60).toFixed(0) + '%',
+                    frustrationLevel: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)],
+                    scrollDepth: (Math.random() * 30 + 70).toFixed(0) + '%',
+                    taskCompletion: (Math.random() * 20 + 75).toFixed(0) + '%'
+                });
+            }
+        }
+
+        async function fetchBusinessIntelligence(tenantId) {
+            try {
+                const response = await fetch(`/api/dashboard/business?tenant=${tenantId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                updateBusinessIntelligence(data);
+            } catch (error) {
+                console.error('Error fetching business intelligence:', error);
+                // Show demo data for hackathon
+                updateBusinessIntelligence({
+                    conversionRate: (Math.random() * 5 + 2).toFixed(2) + '%',
+                    revenueImpact: '$' + (Math.random() * 5000 + 1000).toFixed(0),
+                    userSegment: ['New User', 'Returning', 'Power User'][Math.floor(Math.random() * 3)],
+                    journeyEfficiency: (Math.random() * 20 + 75).toFixed(0) + '%'
+                });
+            }
+        }
+
+        async function fetchRecommendations(tenantId) {
+            try {
+                const response = await fetch(`/api/dashboard/recommendations?tenant=${tenantId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                updateRecommendations(data);
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+                // Show demo recommendations for hackathon
+                updateRecommendations({
+                    recommendations: [
+                        { priority: 'HIGH', text: 'Optimize page load speed - detected 2.3s average load time affecting user engagement' },
+                        { priority: 'MEDIUM', text: 'Improve click target sizes - 15% of clicks miss intended targets' },
+                        { priority: 'LOW', text: 'Consider redesigning navigation flow - users show confusion patterns' }
+                    ]
+                });
+            }
+        }
+
+        function updateLiveMetrics(data) {
+            document.getElementById('activeUsers').textContent = data.activeUsers || '-';
+            document.getElementById('pageViews').textContent = data.pageViews || '-';
+            document.getElementById('avgSessionTime').textContent = data.avgSessionTime || '-';
+            document.getElementById('clickRate').textContent = data.clickRate || '-';
+            document.getElementById('activeSessions').textContent = data.activeSessions || '-';
+            document.getElementById('totalDataPoints').textContent = (data.totalDataPoints || 0).toLocaleString();
+        }
+
+        function updateBehavioralInsights(data) {
+            document.getElementById('engagementScore').textContent = data.engagementScore || '-';
+            document.getElementById('frustrationLevel').textContent = data.frustrationLevel || '-';
+            document.getElementById('scrollDepth').textContent = data.scrollDepth || '-';
+            document.getElementById('taskCompletion').textContent = data.taskCompletion || '-';
+        }
+
+        function updateBusinessIntelligence(data) {
+            document.getElementById('conversionRate').textContent = data.conversionRate || '-';
+            document.getElementById('revenueImpact').textContent = data.revenueImpact || '-';
+            document.getElementById('userSegment').textContent = data.userSegment || '-';
+            document.getElementById('journeyEfficiency').textContent = data.journeyEfficiency || '-';
+        }
+
+        function updateRecommendations(data) {
+            const list = document.getElementById('recommendationsList');
+            if (data.recommendations && data.recommendations.length > 0) {
+                list.innerHTML = data.recommendations.map(rec => 
+                    `<li><span class="insight-priority">${rec.priority}:</span> ${rec.text}</li>`
+                ).join('');
+            } else {
+                list.innerHTML = '<li><span class="insight-priority">INFO:</span> No recommendations available yet. More data needed for AI analysis.</li>';
+            }
+        }
+
+        function toggleAutoRefresh() {
+            const btn = document.getElementById('autoRefreshBtn');
+            
+            if (isAutoRefreshEnabled) {
+                clearInterval(autoRefreshInterval);
+                btn.textContent = '▶️ Auto Refresh';
+                isAutoRefreshEnabled = false;
+            } else {
+                autoRefreshInterval = setInterval(refreshDashboard, 30000); // 30 seconds
+                btn.textContent = '⏸️ Stop Auto Refresh';
+                isAutoRefreshEnabled = true;
+            }
+        }
+
+        function showError(message) {
+            // Create and show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = message;
+            
+            const container = document.querySelector('.dashboard-container');
+            container.insertBefore(errorDiv, container.firstChild);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        async function fetchActivityTimeline(tenantId) {
+            try {
+                const response = await fetch(`/api/dashboard/timeline?tenant=${tenantId}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                updateActivityTimeline(data);
+            } catch (error) {
+                console.error('Error fetching activity timeline:', error);
+                // Show demo timeline for hackathon
+                const demoTimeline = [];
+                const currentHour = new Date().getHours();
+                
+                for (let i = 0; i < 24; i++) {
+                    const hour = (currentHour - 23 + i + 24) % 24;
+                    demoTimeline.push({
+                        hour: hour,
+                        total_events: Math.floor(Math.random() * 500) + 50,
+                        clicks: Math.floor(Math.random() * 50) + 5,
+                        unique_sessions: Math.floor(Math.random() * 20) + 2
+                    });
+                }
+                
+                updateActivityTimeline({ timeline: demoTimeline });
+            }
+        }
+
+        function updateActivityTimeline(data) {
+            const container = document.querySelector('.chart-container');
+            
+            // Clear existing content
+            container.innerHTML = '';
+            
+            // Check if we have real-time activity data or old hourly data
+            if (data.type === 'real-time-activity' && data.timeline && data.timeline.length > 0) {
+                // Create real-time activity feed
+                const feedDiv = document.createElement('div');
+                feedDiv.style.cssText = 'width: 100%; height: 100%; overflow-y: auto; padding: 10px;';
+                
+                // Add header
+                const headerDiv = document.createElement('div');
+                headerDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e0e0e0;';
+                headerDiv.innerHTML = `
+                    <h4 style="margin: 0; color: #333;">🔴 Live User Activity</h4>
+                    <span style="font-size: 12px; color: #666;">${data.totalEntries} recent events</span>
+                `;
+                feedDiv.appendChild(headerDiv);
+                
+                // Create activity list
+                const activityList = document.createElement('div');
+                activityList.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+                
+                data.timeline.forEach((activity, index) => {
+                    const activityItem = document.createElement('div');
+                    activityItem.style.cssText = `
+                        display: flex; 
+                        align-items: center; 
+                        padding: 12px; 
+                        background: ${index % 2 === 0 ? '#f8f9fa' : '#ffffff'}; 
+                        border-radius: 8px; 
+                        border-left: 4px solid ${getEventTypeColor(activity.eventType)};
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                        transition: all 0.2s ease;
+                        cursor: pointer;
+                    `;
+                    
+                    // Add hover effect
+                    activityItem.addEventListener('mouseenter', function() {
+                        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                        this.style.transform = 'translateY(-1px)';
+                    });
+                    
+                    activityItem.addEventListener('mouseleave', function() {
+                        this.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                        this.style.transform = 'translateY(0)';
+                    });
+                    
+                    activityItem.innerHTML = `
+                        <div style="font-size: 20px; margin-right: 12px;">${activity.activityIcon}</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 500; color: #333; margin-bottom: 2px;">
+                                ${activity.activityText}
+                            </div>
+                            <div style="font-size: 12px; color: #666;">
+                                Session: ${activity.sessionId.substring(0, 12)}... • ${activity.timeAgoText}
+                                ${activity.element && activity.element.tag ? ' • Element: ' + activity.element.tag + (activity.element.id ? '#' + activity.element.id : '') : ''}
+                            </div>
+                        </div>
+                        <div style="text-align: right; font-size: 11px; color: #888;">
+                            <div>${new Date(activity.timestamp).toLocaleTimeString()}</div>
+                            ${activity.coordinates && activity.coordinates.x !== null ? 
+                                `<div>x:${activity.coordinates.x}, y:${activity.coordinates.y}</div>` : ''}
+                        </div>
+                    `;
+                    
+                    activityList.appendChild(activityItem);
+                });
+                
+                feedDiv.appendChild(activityList);
+                
+                // Add footer with last updated time
+                const footerDiv = document.createElement('div');
+                footerDiv.style.cssText = 'margin-top: 15px; padding-top: 10px; border-top: 1px solid #e0e0e0; text-align: center; font-size: 12px; color: #666;';
+                footerDiv.textContent = `Last updated: ${new Date(data.lastUpdated).toLocaleTimeString()}`;
+                feedDiv.appendChild(footerDiv);
+                
+                container.appendChild(feedDiv);
+            } else {
+                // Fallback for old hourly data or when no real-time data is available
+                const messageDiv = document.createElement('div');
+                messageDiv.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #666;';
+                messageDiv.innerHTML = `
+                    <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+                    <div style="font-size: 16px; margin-bottom: 10px;">No Recent Activity</div>
+                    <div style="font-size: 14px; text-align: center;">
+                        Start interacting with your site to see real-time user activity here
+                    </div>
+                `;
+                container.appendChild(messageDiv);
+            }
+        }
+        
+        // Helper function to get color based on event type
+        function getEventTypeColor(eventType) {
+            const colors = {
+                'click': '#e74c3c',
+                'mouse_move': '#3498db',
+                'mousemove': '#3498db',
+                'scroll': '#f39c12',
+                'visibility_change': '#9b59b6',
+                'page_load': '#27ae60',
+                'form_submit': '#e67e22'
+            };
+            return colors[eventType] || '#95a5a6';
+        }
+
+        // Enhanced mouse tracking visualization
+        async function updateMouseHeatmap() {
+            const tenantId = document.getElementById('tenantSelect').value;
+            const overlay = document.querySelector('.heatmap-overlay');
+            
+            try {
+                const response = await fetch(`/api/dashboard/mousedata?tenant=${tenantId}&limit=200`);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderMouseHeatmap(data.mouseData);
+                }
+            } catch (error) {
+                console.error('Error fetching mouse data:', error);
+                // Keep demo visualization
+            }
+        }
+
+        function renderMouseHeatmap(mouseData) {
+            const container = document.querySelector('.heatmap-container');
+            const overlay = document.querySelector('.heatmap-overlay');
+            
+            if (!mouseData || mouseData.length === 0) {
+                return;
+            }
+
+            // Clear existing overlay
+            overlay.innerHTML = '';
+            
+            // Create SVG for heatmap
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', '0 0 100 100');
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+            
+            // Define gradient for heat effect
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+            gradient.id = 'heatGradient';
+            
+            const stops = [
+                { offset: '0%', color: 'red', opacity: '0.8' },
+                { offset: '50%', color: 'yellow', opacity: '0.4' },
+                { offset: '100%', color: 'transparent', opacity: '0' }
+            ];
+            
+            stops.forEach(stop => {
+                const stopElement = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+                stopElement.setAttribute('offset', stop.offset);
+                stopElement.setAttribute('stop-color', stop.color);
+                stopElement.setAttribute('stop-opacity', stop.opacity);
+                gradient.appendChild(stopElement);
+            });
+            
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+            
+            // Add mouse data points
+            const maxViewportWidth = Math.max(...mouseData.map(d => d.viewport_width || 1200));
+            const maxViewportHeight = Math.max(...mouseData.map(d => d.viewport_height || 800));
+            
+            mouseData.forEach((point, index) => {
+                if (point.x_coordinate && point.y_coordinate) {
+                    const x = (point.x_coordinate / maxViewportWidth) * 100;
+                    const y = (point.y_coordinate / maxViewportHeight) * 100;
+                    const isClick = point.event_type === 'click';
+                    
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', x);
+                    circle.setAttribute('cy', y);
+                    circle.setAttribute('r', isClick ? '3' : '1.5');
+                    circle.setAttribute('fill', isClick ? 'url(#heatGradient)' : 'rgba(255, 165, 0, 0.3)');
+                    circle.setAttribute('opacity', Math.max(0.1, 1 - (index / mouseData.length)));
+                    
+                    svg.appendChild(circle);
+                }
+            });
+            
+            overlay.appendChild(svg);
+            
+            // Update heatmap info
+            const infoElement = overlay.querySelector('div') || document.createElement('div');
+            infoElement.style.cssText = 'position: absolute; bottom: 10px; left: 10px; font-size: 12px; color: #666; background: rgba(255,255,255,0.8); padding: 5px; border-radius: 3px;';
+            infoElement.textContent = `${mouseData.length} data points • Clicks: ${mouseData.filter(p => p.event_type === 'click').length}`;
+            
+            if (!overlay.querySelector('div')) {
+                overlay.appendChild(infoElement);
+            }
+        }
+
+        // Start mouse heatmap updates
+        setInterval(updateMouseHeatmap, 10000); // Update every 10 seconds
+    </script>
+</body>
+</html>
