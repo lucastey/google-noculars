@@ -21,7 +21,7 @@ gcloud run deploy $SERVICE_NAME \
   --cpu 1 \
   --max-instances 10 \
   --timeout 900 \
-  --set-env-vars NODE_ENV=production \
+  --set-env-vars NODE_ENV=production,GOOGLE_APPLICATION_CREDENTIALS="" \
   --project $PROJECT_ID
 
 echo "✅ Deployment complete!"

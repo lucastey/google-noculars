@@ -12,10 +12,11 @@ RUN npm ci --only=production
 COPY server.js ./
 COPY client-sdk/ ./client-sdk/
 COPY demo.html ./
+COPY dashboard.html ./
 COPY DEMO_API_KEYS.md ./
 
-# Copy service account key if exists
-COPY service-account-key.json* ./
+# Note: In Cloud Run, we use the default service account
+# No need to copy service-account-key.json
 
 # Set environment variables
 ENV PORT=8080
